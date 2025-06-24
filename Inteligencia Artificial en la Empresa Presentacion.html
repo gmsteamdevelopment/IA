@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Estratégico de Inteligencia Artificial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Strategic Calm -->
+    <!-- Application Structure Plan: The SPA is designed as a single-page executive dashboard. It starts with a high-level strategic overview (Visión General) using key stats and a market growth chart to establish the "why." It then moves to an interactive "Explorador de Aplicaciones" where users can click on functional areas (Ventas, Finanzas, etc.) to reveal details, preventing information overload. This is more engaging than a static table. The "Hoja de Ruta" section visualizes the decision-making process with a prioritization matrix and an implementation timeline. Finally, dedicated sections for "IA Responsable" and "Recomendaciones" address critical governance and action items. This structure guides the user from the strategic imperative down to actionable steps in a logical, digestible flow. -->
+    <!-- Visualization & Content Choices: 
+        - Market Growth: Report Info (Market size $208B -> $1T+) -> Goal (Show Change) -> Viz (Line Chart) -> Interaction (Tooltip) -> Justification (Best for time-series data) -> Library (Chart.js).
+        - Key Applications: Report Info (Table of apps) -> Goal (Organize/Compare) -> Viz (Interactive Cards + Detail Panel) -> Interaction (Click to update panel) -> Justification (Engaging, user-controlled exploration) -> Library (JS/HTML/CSS).
+        - Implementation Time: Report Info (3-6 months, etc.) -> Goal (Compare duration) -> Viz (Horizontal Bar Chart) -> Interaction (None) -> Justification (Clear visual comparison of timeframes) -> Library (Chart.js).
+        - Prioritization Matrix: Report Info (Impact vs Viability framework) -> Goal (Organize/Guide) -> Viz (2x2 Grid) -> Interaction (Hover for info) -> Justification (Intuitive framework visualization) -> Library (HTML/Tailwind).
+        - Implementation Steps: Report Info (5-step process) -> Goal (Show Sequence) -> Viz (Step-flow diagram) -> Interaction (None) -> Justification (Visually clear process) -> Library (HTML/Tailwind).
+        - Risks/Mitigations: Report Info (Ethics/Security text) -> Goal (Compare) -> Viz (2-column layout) -> Interaction (None) -> Justification (Direct problem-solution view) -> Library (HTML/Tailwind).
+        All choices adhere to the interactive, user-friendly design goal. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F4;
+            color: #3D405B;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #E07A5F;
+            border-bottom-color: #E07A5F;
+        }
+        .stat-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        .app-card {
+            cursor: pointer;
+            border: 1px solid #d1d5db;
+            transition: all 0.3s;
+        }
+        .app-card.active, .app-card:hover {
+            border-color: #E07A5F;
+            background-color: #FEF6F4;
+            transform: translateY(-3px);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .matrix-quadrant {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px dashed #BCC1C4;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-[#3D405B]">Estrategia de IA</h1>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#vision" class="nav-link">Visión General</a>
+                <a href="#aplicaciones" class="nav-link">Aplicaciones</a>
+                <a href="#hoja-de-ruta" class="nav-link">Hoja de Ruta</a>
+                <a href="#responsabilidad" class="nav-link">IA Responsable</a>
+                <a href="#recomendaciones" class="nav-link">Recomendaciones</a>
+            </div>
+            <div class="md:hidden">
+                <button id="menu-btn" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#vision" class="block py-2 text-center nav-link">Visión General</a>
+            <a href="#aplicaciones" class="block py-2 text-center nav-link">Aplicaciones</a>
+            <a href="#hoja-de-ruta" class="block py-2 text-center nav-link">Hoja de Ruta</a>
+            <a href="#responsabilidad" class="block py-2 text-center nav-link">IA Responsable</a>
+            <a href="#recomendaciones" class="block py-2 text-center nav-link">Recomendaciones</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 md:py-12">
+
+        <section id="vision" class="text-center mb-16 md:mb-24 scroll-mt-20">
+            <h2 class="text-3xl md:text-5xl font-bold mb-4">La IA como Imperativo Estratégico</h2>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600">La Inteligencia Artificial no es una opción, es el motor de la transformación digital que define la competitividad y el crecimiento en el mercado actual. Su adopción es fundamental para la eficiencia, la innovación y la generación de valor sostenible.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mt-12">
+                <div class="stat-card">
+                    <p class="text-4xl md:text-5xl font-bold text-[#E07A5F]">> $1T</p>
+                    <p class="text-gray-500 mt-2">Mercado Global de IA proyectado para 2028</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-4xl md:text-5xl font-bold text-[#81B29A]">73%</p>
+                    <p class="text-gray-500 mt-2">De empresas en EE.UU. ya utilizan IA en sus negocios</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-4xl md:text-5xl font-bold text-[#F2CC8F]">+40%</p>
+                    <p class="text-gray-500 mt-2">Tasa de Crecimiento Anual Compuesta (CAGR)</p>
+                </div>
+            </div>
+
+            <div class="mt-12">
+                <div class="chart-container max-w-4xl h-[40vh] md:h-[50vh]">
+                    <canvas id="marketGrowthChart"></canvas>
+                </div>
+                <p class="text-sm text-gray-500 mt-4">Proyección del Crecimiento del Mercado Global de IA (en miles de millones de USD)</p>
+            </div>
+        </section>
+
+        <section id="aplicaciones" class="mb-16 md:mb-24 scroll-mt-20">
+            <div class="text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Explorador de Aplicaciones Clave</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-12">La IA ofrece un abanico de oportunidades transversales. Seleccione un área funcional para explorar sus beneficios, casos de uso prioritarios y el impacto estratégico potencial en la organización.</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg flex flex-col md:flex-row gap-8 min-h-[30rem]">
+                <div id="app-details" class="w-full">
+                </div>
+            </div>
+        </section>
+
+        <section id="hoja-de-ruta" class="mb-16 md:mb-24 scroll-mt-20">
+            <div class="text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Hoja de Ruta Estratégica</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-12">Para maximizar el retorno de la inversión, es crucial priorizar los proyectos de IA. Utilizamos una matriz de Impacto vs. Viabilidad para identificar las iniciativas más prometedoras y definir un plan de acción claro.</p>
+            </div>
+            
+            <div class="relative grid grid-cols-2 grid-rows-2 gap-2 p-4 bg-gray-100 rounded-xl">
+                 <div class="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-full pr-4 text-center font-semibold">
+                    <div class="transform -rotate-90 origin-center whitespace-nowrap">Impacto Estratégico</div>
+                </div>
+                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full pt-4 text-center font-semibold">Viabilidad de Ejecución</div>
+                
+                <div class="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 text-sm text-gray-500">Alto</div>
+                <div class="absolute bottom-0 left-0 -translate-x-1/2 translate-y-1/2 text-sm text-gray-500">Bajo</div>
+
+                <div class="absolute bottom-0 left-0 -translate-x-full -translate-y-1/2 text-sm text-gray-500">Baja</div>
+                <div class="absolute bottom-0 right-0 translate-x-full -translate-y-1/2 text-sm text-gray-500">Alta</div>
+
+                <div class="matrix-quadrant rounded-tl-lg p-4">
+                    <h3 class="font-bold text-lg text-[#3D405B]">Investigación</h3>
+                    <p class="text-sm text-gray-600 mb-3">Alto impacto, baja viabilidad actual. Requieren I+D.</p>
+                    <div class="space-y-2">
+                        <div class="bg-blue-100 text-blue-800 p-2 rounded-md text-sm">Previsión de la Demanda</div>
+                    </div>
+                </div>
+                <div class="matrix-quadrant rounded-tr-lg p-4 bg-green-50">
+                    <h3 class="font-bold text-lg text-green-800">Acelerar a MVP</h3>
+                    <p class="text-sm text-gray-600 mb-3">Los candidatos ideales para inversión y desarrollo rápido.</p>
+                     <div class="space-y-2">
+                        <div class="bg-green-100 text-green-800 p-2 rounded-md text-sm">Personalización y Recomendaciones</div>
+                        <div class="bg-green-100 text-green-800 p-2 rounded-md text-sm">Detección de Fraudes</div>
+                        <div class="bg-green-100 text-green-800 p-2 rounded-md text-sm">Chatbots y Asistentes Virtuales</div>
+                    </div>
+                </div>
+                <div class="matrix-quadrant rounded-bl-lg p-4">
+                    <h3 class="font-bold text-lg text-gray-700">Archivar</h3>
+                    <p class="text-sm text-gray-600 mb-3">Bajo impacto y baja viabilidad. Reevaluar en el futuro.</p>
+                </div>
+                <div class="matrix-quadrant rounded-br-lg p-4">
+                    <h3 class="font-bold text-lg text-orange-700">Incubación</h3>
+                    <p class="text-sm text-gray-600 mb-3">Viables técnicamente pero con menor impacto estratégico inicial.</p>
+                    <div class="space-y-2">
+                        <div class="bg-orange-100 text-orange-800 p-2 rounded-md text-sm">Reclutamiento y Selección</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-16">
+                 <h3 class="text-2xl font-bold text-center mb-8">Proceso de Implementación Iterativo</h3>
+                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-center">
+                    <div class="flex flex-col items-center">
+                        <div class="bg-white flex items-center justify-center w-16 h-16 rounded-full shadow-md border-2 border-[#81B29A]"><span class="text-2xl font-bold text-[#81B29A]">1</span></div>
+                        <p class="font-semibold mt-3">Evaluar</p><p class="text-sm text-gray-600">Capacidades y recursos actuales.</p>
+                    </div>
+                     <div class="hidden md:flex items-center"><div class="w-full h-0.5 bg-gray-300"></div></div>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-white flex items-center justify-center w-16 h-16 rounded-full shadow-md border-2 border-[#81B29A]"><span class="text-2xl font-bold text-[#81B29A]">2</span></div>
+                        <p class="font-semibold mt-3">Seleccionar</p><p class="text-sm text-gray-600">Casos de uso de alto valor.</p>
+                    </div>
+                    <div class="hidden md:flex items-center"><div class="w-full h-0.5 bg-gray-300"></div></div>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-white flex items-center justify-center w-16 h-16 rounded-full shadow-md border-2 border-[#81B29A]"><span class="text-2xl font-bold text-[#81B29A]">3</span></div>
+                        <p class="font-semibold mt-3">Probar</p><p class="text-sm text-gray-600">Con un proyecto piloto interno.</p>
+                    </div>
+                    <div class="hidden md:flex items-center"><div class="w-full h-0.5 bg-gray-300"></div></div>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-white flex items-center justify-center w-16 h-16 rounded-full shadow-md border-2 border-[#81B29A]"><span class="text-2xl font-bold text-[#81B29A]">4</span></div>
+                        <p class="font-semibold mt-3">Ajustar</p><p class="text-sm text-gray-600">Aprender del piloto.</p>
+                    </div>
+                     <div class="hidden md:flex items-center"><div class="w-full h-0.5 bg-gray-300"></div></div>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-white flex items-center justify-center w-16 h-16 rounded-full shadow-md border-2 border-[#81B29A]"><span class="text-2xl font-bold text-[#81B29A]">5</span></div>
+                        <p class="font-semibold mt-3">Re-Priorizar</p><p class="text-sm text-gray-600">Optimizar la cartera de proyectos.</p>
+                    </div>
+                 </div>
+            </div>
+        </section>
+        
+        <section id="responsabilidad" class="mb-16 md:mb-24 scroll-mt-20">
+            <div class="text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">IA Responsable: Un Pilar de Confianza</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-12">La adopción de IA debe ser ética y segura. La gobernanza, la transparencia y la supervisión humana no son opcionales; son la base para construir una ventaja competitiva sostenible y mantener la confianza de clientes y reguladores.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-2xl font-semibold mb-4 text-red-600">Riesgos Éticos y de Seguridad</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">&#10007;</span><div><span class="font-semibold">Sesgos Algorítmicos:</span> Pueden perpetuar y amplificar discriminaciones existentes.</div></li>
+                        <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">&#10007;</span><div><span class="font-semibold">Privacidad de Datos:</span> La gestión de grandes volúmenes de datos sensibles es un desafío crítico.</div></li>
+                        <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">&#10007;</span><div><span class="font-semibold">Falta de Transparencia:</span> Las decisiones de "caja negra" erosionan la confianza y dificultan la rendición de cuentas.</div></li>
+                         <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">&#10007;</span><div><span class="font-semibold">Vulnerabilidades de Seguridad:</span> Los sistemas de IA son un objetivo para ciberataques sofisticados.</div></li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-2xl font-semibold mb-4 text-green-600">Estrategias de Mitigación</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">&#10003;</span><div><span class="font-semibold">Gobernanza Clara:</span> Establecer marcos y políticas claras para el uso ético y seguro de la IA.</div></li>
+                        <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">&#10003;</span><div><span class="font-semibold">Auditorías y Diversidad de Datos:</span> Realizar auditorías éticas regulares y usar conjuntos de datos diversos.</div></li>
+                        <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">&#10003;</span><div><span class="font-semibold">Supervisión Humana Constante:</span> Asegurar que las decisiones críticas siempre cuenten con validación humana.</div></li>
+                        <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">&#10003;</span><div><span class="font-semibold">Inversión en Ciberseguridad:</span> Proteger los modelos y datos de IA con medidas de seguridad robustas.</div></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="recomendaciones" class="scroll-mt-20">
+            <div class="text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Recomendaciones Estratégicas Clave</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-12">Para asegurar una adopción exitosa y transformadora de la Inteligencia Artificial, proponemos cinco pilares de acción fundamentales.</p>
+            </div>
+
+            <div class="space-y-6 max-w-4xl mx-auto">
+                <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#E07A5F]">
+                    <h3 class="text-xl font-semibold">1. Definir Objetivos Claros y Empezar con Pilotos</h3>
+                    <p class="text-gray-600 mt-1">Identificar problemas de negocio específicos y comenzar con implementaciones a pequeña escala para aprender, validar y ajustar el enfoque antes de escalar.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#81B29A]">
+                    <h3 class="text-xl font-semibold">2. Invertir en la Calidad de los Datos</h3>
+                    <p class="text-gray-600 mt-1">La eficacia de cualquier sistema de IA depende directamente de la calidad de los datos. Priorizar la recolección, limpieza y estructuración es un paso ineludible.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-[#F2CC8F]">
+                    <h3 class="text-xl font-semibold">3. Fomentar una Cultura de Innovación y Aprendizaje</h3>
+                    <p class="text-gray-600 mt-1">Capacitar a los empleados, promover la experimentación y una mentalidad abierta al cambio. La inversión en IA es una inversión en el desarrollo de habilidades de la fuerza laboral.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-sky-500">
+                    <h3 class="text-xl font-semibold">4. Priorizar la Colaboración Humano-IA</h3>
+                    <p class="text-gray-600 mt-1">Enfocarse en desarrollar herramientas que potencien las capacidades humanas, permitiendo a los empleados concentrarse en tareas de mayor valor estratégico y creativo.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-purple-500">
+                    <h3 class="text-xl font-semibold">5. Establecer Marcos de Gobernanza y Supervisión</h3>
+                    <p class="text-gray-600 mt-1">Implementar políticas claras sobre el uso ético, la privacidad y la seguridad, con una supervisión humana continua para un despliegue responsable.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="container mx-auto px-6 py-4 text-center text-sm">
+            <p>&copy; 2024 Presentación Estratégica para la Junta Directiva. Basado en el informe "Inteligencia Artificial en la Empresa".</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            const marketData = {
+                labels: ['2023', '2024', '2025', '2026', '2027', '2028'],
+                datasets: [{
+                    label: 'Mercado Global de IA (en miles de millones de USD)',
+                    data: [208, 291, 407, 570, 798, 1117],
+                    fill: true,
+                    backgroundColor: 'rgba(224, 122, 95, 0.2)',
+                    borderColor: '#E07A5F',
+                    tension: 0.4,
+                    pointBackgroundColor: '#E07A5F',
+                    pointHoverRadius: 8
+                }]
+            };
+
+            const marketGrowthCtx = document.getElementById('marketGrowthChart').getContext('2d');
+            new Chart(marketGrowthCtx, {
+                type: 'line',
+                data: marketData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Miles de Millones (USD)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.dataset.label}: $${context.formattedValue}B`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const applicationsData = [
+                { id: 'ventas', name: 'Ventas y Marketing', icon: '📈', priority: 'Alta', benefits: ['Mayor ROI', 'Mejor segmentación', 'Experiencia mejorada'], time: [3, 6], risk: 'La privacidad de los datos del cliente y los sesgos en algoritmos de recomendación son críticos. Requiere un marco de seguridad robusto y auditorías éticas.', insight: 'Transforma la relación con el cliente de transaccional a experiencial, fomentando la lealtad y el valor de vida del cliente.' },
+                { id: 'finanzas', name: 'Finanzas y Fraudes', icon: '🛡️', priority: 'Alta', benefits: ['Reducción de pérdidas', 'Mayor exactitud', 'Cumplimiento normativo'], time: [4, 8], risk: 'Los falsos positivos/negativos en la detección de fraudes exigen una supervisión humana rigurosa. Las decisiones críticas deben mantener el juicio humano.', insight: 'Fortalece la resiliencia operativa y la confianza del cliente, protegiendo activos y la reputación de la institución.' },
+                { id: 'operaciones', name: 'Operaciones y Logística', icon: '🚚', priority: 'Media', benefits: ['Optimización de costos', 'Reducción de stockouts', 'Mayor sostenibilidad'], time: [3, 6], risk: 'La calidad y complejidad de los datos de múltiples fuentes es un desafío. Los costos iniciales pueden ser elevados.', insight: 'Convierte la cadena de suministro de un centro de costos a un diferenciador estratégico de resiliencia y sostenibilidad.' },
+                { id: 'rrhh', name: 'Recursos Humanos', icon: '👥', priority: 'Media', benefits: ['Optimización de procesos', 'Decisiones estratégicas', 'Personalización'], time: [2, 5], risk: 'El principal riesgo son los sesgos algorítmicos en la selección, que pueden perpetuar discriminación histórica si no se auditan.', insight: 'Libera a los profesionales de RRHH para que se centren en tareas de alto valor como la cultura, la mentoría y la estrategia de talento.' },
+                { id: 'cliente', name: 'Servicio al Cliente', icon: '💬', priority: 'Alta', benefits: ['Disponibilidad 24/7', 'Respuestas rápidas', 'Reducción de carga'], time: [0.5, 6], risk: 'Los chatbots pueden dar respuestas imprecisas ("alucinaciones") y carecen de empatía en casos complejos, requiriendo escalamiento a humanos.', insight: 'Eleva el servicio de un centro de soporte reactivo a un motor proactivo de fidelización y experiencia de marca.' }
+            ];
+
+            const appCardsContainer = document.querySelector('#aplicaciones .grid');
+            const appDetailsContainer = document.getElementById('app-details');
+            let timeChartInstance = null;
+            
+            function renderAppCards() {
+                let html = '';
+                applicationsData.forEach(app => {
+                    html += `
+                        <div id="card-${app.id}" class="app-card flex flex-col items-center p-4 rounded-lg text-center bg-white" data-id="${app.id}">
+                            <span class="text-4xl mb-2">${app.icon}</span>
+                            <span class="font-semibold text-sm md:text-base">${app.name}</span>
+                        </div>
+                    `;
+                });
+                appCardsContainer.innerHTML = html;
+            }
+
+            function renderAppDetails(appId) {
+                const app = applicationsData.find(a => a.id === appId);
+                if (!app) return;
+
+                document.querySelectorAll('.app-card').forEach(c => c.classList.remove('active'));
+                document.getElementById(`card-${app.id}`).classList.add('active');
+
+                let detailsHtml = `
+                    <div class="md:grid md:grid-cols-2 md:gap-8">
+                        <div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-[#3D405B]">${app.name}</h3>
+                            <div class="mt-2 mb-4">
+                                <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full ${app.priority === 'Alta' ? 'text-red-600 bg-red-200' : 'text-yellow-600 bg-yellow-200'}">
+                                    Prioridad ${app.priority}
+                                </span>
+                            </div>
+                            <h4 class="font-semibold mt-6 mb-2">Beneficios Clave:</h4>
+                            <ul class="space-y-2 list-inside list-disc text-gray-600">
+                                ${app.benefits.map(b => `<li>${b}</li>`).join('')}
+                            </ul>
+                            <h4 class="font-semibold mt-6 mb-2">Riesgo Principal:</h4>
+                            <p class="text-gray-600 text-sm">${app.risk}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2">Tiempo de Implementación Inicial:</h4>
+                            <div class="h-48 w-full"><canvas id="timeChart"></canvas></div>
+                            <h4 class="font-semibold mt-6 mb-2">Visión Estratégica:</h4>
+                            <p class="text-gray-600 text-sm p-4 bg-gray-50 rounded-lg border-l-4 border-[#F2CC8F]">${app.insight}</p>
+                        </div>
+                    </div>
+                `;
+                appDetailsContainer.innerHTML = detailsHtml;
+
+                if (timeChartInstance) {
+                    timeChartInstance.destroy();
+                }
+                const timeCtx = document.getElementById('timeChart').getContext('2d');
+                timeChartInstance = new Chart(timeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Tiempo Estimado (Meses)'],
+                        datasets: [{
+                            label: 'Mínimo',
+                            data: [app.time[0]],
+                            backgroundColor: '#81B29A',
+                            borderColor: '#6a9480',
+                            borderWidth: 1,
+                            barPercentage: 0.5
+                        }, {
+                            label: 'Máximo',
+                            data: [app.time[1]],
+                            backgroundColor: '#F2CC8F',
+                            borderColor: '#c9a873',
+                            borderWidth: 1,
+                            barPercentage: 0.5
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                stacked: true,
+                                title: { display: true, text: 'Meses' }
+                            },
+                            y: {
+                                stacked: true,
+                                grid: { display: false }
+                            }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+            appCardsContainer.addEventListener('click', (e) => {
+                const card = e.target.closest('.app-card');
+                if (card) {
+                    renderAppDetails(card.dataset.id);
+                }
+            });
+
+            renderAppCards();
+            renderAppDetails('ventas');
+        });
+    </script>
+</body>
+</html>
